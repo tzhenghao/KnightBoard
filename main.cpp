@@ -5,33 +5,41 @@
 #include <vector>
 
 #include "KnightBoard.h"
-#include "Moves.h"
 
 using namespace std;
 
 // Prototypes.
-bool areMovesValid (const vector<Position>& moves);
+bool areMovesValid (const KnightBoard &knightBoard, const vector<Position>& moves);
 
-bool areTerrainsValid(const Position &pos);
+bool areTerrainsValid(const KnightBoard &knightBoard, const Position &pos);
 
-int calculateTerrainCost(const Position &pos);
+int calculateTerrainCost(const KnightBoard &knightBoard, const Position &pos);
 
-void printPath(const vector <vector <Position> > &moves);
+int findBestPath(KnightBoard &knightBoard, const vector <Position> &moves);
+
+void printPath(const vector <Position> &moves);
 
 int main(int argc, char *argv[]) {
 
-	KnightBoard knightBoard;
+	if (argc != 2) {
+		cerr << "Invalid file arguments\n";
+		return -1;
+	}
 
-	vector< vector <char> > bestPathSoFar;
+	KnightBoard knightBoard(argv[1]); // File argument.
+
+	vector <Position> bestPathSoFar;
+
+	knightBoard.printKnightBoard();
 
 	return 0;
 }
 
 // REQUIRES: A sequence of moves
 // EFFECTS: Returns true if the sequence contains all valid knight moves.
-bool areMovesValid (const vector<Position>& moves) {
+bool areMovesValid (const KnightBoard &knightBoard, const vector<Position>& moves) {
 
-	knightPosition = getKnightPosition();
+	Position knightPosition = knightBoard.getKnightPosition();
 
 	for (auto &position: moves) {
 
@@ -99,18 +107,18 @@ bool areMovesValid (const vector<Position>& moves) {
 }
 
 // EFFECTS: Returns true if the terrain is valid.
-bool areTerrainsValid(const Position &dest) {
+bool areTerrainsValid(const KnightBoard &knightBoard, const Position &dest) {
 
-	char terrain = getTerrainType(dest);
+	char terrain = knightBoard.getTerrainType(dest);
 
 	return terrain != 'R' && terrain != 'B';
 }
 
 // REQUIRES: The position that we are moving into.
 // EFFECTS: Calculates the terrain cost for entering the specified position.
-int calculateTerrainCost(const Position &pos) {
+int calculateTerrainCost(const KnightBoard &knightBoard, const Position &pos) {
 
-	char terrain = getTerrainType(pos);
+	char terrain = knightBoard.getTerrainType(pos);
 
 	if (terrain == 'W') {
 		return 2;
@@ -136,17 +144,16 @@ int calculateTerrainCost(const Position &pos) {
 }
 
 // EFFECTS: Finds the best path from the given start and end points.
-int findBestPath(KnightBoard &knightBoard, const vector <vector <Position> &moves) {
+int findBestPath(KnightBoard &knightBoard, const vector <Position> &moves) {
 
-
-
+	return -1;
 }
 
 // EFFECTS: Prints the path.
-void printPath(const vector <vector <Position> > &moves) {
+void printPath(const vector <Position> &moves) {
 
 	for (auto &pos: moves) {
-		cout << "(" << moves.x << "," << moves.y << "),";
+		cout << "(" << pos.x << "," << pos.y << "),";
 	}
 	cout << "\n";
 }

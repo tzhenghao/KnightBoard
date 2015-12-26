@@ -14,13 +14,14 @@ release: all
 debug: FLAGS += -g
 debug: all
 
-all: main.o
-	g++ $(FLAGS) main.o -o knightboard
+CC = g++
+PROGRAM = knightboard
 
-main.o:	Position.h KnightBoard.h
-	g++ $(FLAGS) $? -c main.cpp
+all: KnightBoard.h KnightBoard.cpp main.cpp
+	$(CC) $(FLAGS) $? -o $(PROGRAM)
 
 # make clean - remove .o files and the executable file.
-# You can modify it to remove whatever.
 clean:
-	rm -f *.o knightboard
+	rm -f *.o $(PROGRAM)
+
+# test:
