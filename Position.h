@@ -3,13 +3,11 @@
 #ifndef MOVES_H
 #define MOVES_H
 
-class Move {
+// Position on the knight board.
+struct Position {
 
-	private:
-
-
-	public:
-
-};
+	int x;
+	int y;
+}
 
 #endif
