@@ -20,11 +20,15 @@ int main(int argc, char *argv[]) {
 	}
 
 	Position start(0, 1);
-	Position stop(0, 14);
+	Position stop(1, 3);
 
 	KnightEngine knightEngine(start, stop, argv[1]); // File argument.
 
-	knightEngine.task1();
+	//knightEngine.task1();
+	int cost = knightEngine.findBestPath();
 
+	cout << "Total cost: " << cost << "\n";
+
+	knightEngine.printPath();
 	return 0;
 }

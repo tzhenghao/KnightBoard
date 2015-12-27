@@ -1,12 +1,32 @@
 #include "KnightEngine.h"
+#include <cassert>
 
 using namespace std;
+
+// Estimated total cost from start to goal through y.
+unordered_map<int, int> fScore;
+
+// REQUIRES: A given position.
+// EFFECTS: Returns a hash value for the position (Used by unordered_map).
+int toHash(const Position &pos) {
+	return pos.y * BOARD_SIZE + pos.x;
+}
+
+// Comparator for the priority queue when evaluating travel cost.
+struct PriorityQueueComparator {
+
+	bool operator()(const Position& lhs, const Position&rhs) const
+	{
+		return fScore[toHash(lhs)] < fScore[toHash(rhs)];
+	}
+};
 
 KnightEngine::KnightEngine(const Position &start, const Position &stop,
 							const char *inputFile) {
 
 	knightBoard.initializeKnightBoard(start, stop, inputFile);
 
+	assert(path.empty());
 }
 
 bool KnightEngine::isMoveValid(const Position& position) {
@@ -18,6 +38,9 @@ bool KnightEngine::isMoveValid(const Position& position) {
 		|| position.x > BOARD_SIZE - 1
 		|| position.y > BOARD_SIZE - 1) {
 		cerr << "Move is outside allocated board!\n";
+		return false;
+	}
+	else if (!isTerrainValid(position.x, position.y)) {
 		return false;
 	}
 	// Check for top and bottom
@@ -127,18 +150,17 @@ bool KnightEngine::isTerrainValid(int x, int y) {
 	return terrain != 'R' && terrain != 'B';
 }
 
-int KnightEngine::calculateTerrainCost(const Position &pos) {
+int KnightEngine::calculateTerrainCost(int x, int y) {
 
+	Position pos(x, y);
 	char terrain = knightBoard.getTerrainType(pos);
 
 	if (terrain == 'W') {
 		return 2;
 	}
-	else if (terrain == 'R') {
-		return -1; // error
-	}
-	else if (terrain == 'B') {
-		return -1; // error
+	else if (terrain == 'R' || terrain == 'B') {
+		cerr << "Error: CalculateTerrainCost evaluated to R or B\n";
+		return -1;
 	}
 	else if (terrain == 'T') {
 		return 0;
@@ -146,11 +168,12 @@ int KnightEngine::calculateTerrainCost(const Position &pos) {
 	else if (terrain == 'L') {
 		return 5;
 	}
-	else if (terrain == '.') {
+	else if (terrain == '.' || terrain == 'E' || terrain == 'S') {
 		return 1;
 	}
 	else {
-		return -1; // error
+		cerr << "Error: CalculateTerrainCost evaluated to unknown terrain\n";
+		return -1;
 	}
 }
 
@@ -159,8 +182,11 @@ int KnightEngine::findBestPath() {
 	// Set of explored nodes.
 	unordered_set<int> closedSet;
 
-	queue<Position> openSet;
+	priority_queue<Position, vector<Position>, PriorityQueueComparator> openSet;
+	unordered_set<int> isInOpenSet; // Mapping for whether the node is in the open set.
+
 	openSet.push(knightBoard.startPosition);
+	isInOpenSet.insert(toHash(knightBoard.startPosition));
 
 	unordered_map<int, Position> fromNodes;
 
@@ -168,58 +194,156 @@ int KnightEngine::findBestPath() {
 	unordered_map<int, int> gScore;
 	gScore[toHash(knightBoard.startPosition)] = 0; // Cost from start along best known path.
 
-    // Estimated total cost from start to goal through y.
-	unordered_map<int, int> fScore;
 	fScore[toHash(knightBoard.startPosition)] = calculateHeuristicCost(knightBoard.startPosition, knightBoard.endPosition);
 
 	while (!openSet.empty()) {
 
-		Position currentPos = openSet.front(); // TODO:the node in OpenSet having the lowest f_score[] value
+		Position currentPos = openSet.top();
 
 		if (currentPos == knightBoard.endPosition) {
+
 			buildPath(fromNodes, knightBoard.endPosition);
-            return gScore[toHash(currentPos)];
+
+			// Move knight to that position and print the knight board.
+			knightBoard.moveKnightToPosition(path[path.size() - 1]);
+			knightBoard.printKnightBoard();
+
+            return fScore[toHash(currentPos)];
 		}
 
-        //openSet.Remove(current)
+        openSet.pop();
+		isInOpenSet.erase(toHash(currentPos));
+
 		closedSet.insert(toHash(currentPos));
 
-        //for each neighbor of current {
+		Position neighbor;
 
-		//	if (closedSet.find(neighbor) != closedSet.end()) {
-        //        continue;
-		//	}
-        //    int currentGScore = gScore[currentPos]
-		//						+ calculateTerrainCost(knightBoard, neighbor);
+		for (int i = 0 ; i < 8; ++i) {
 
-		//	if (openSet.find(neighbor) == openSet.end()) {
-		//		openSet.enqueue(neighbor);
-		//	}
-        //    else if (currentGScore >= gScore[neighbor])
-        //        continue;
+			generateNeighbor(neighbor, currentPos, (Moves)i);
 
-        //    // Best path so far.
-        //    fromNodes[neighbor] = currentPos;
-        //    gScore[neighbor] = currentGScore;
-        //    fScore[neighbor] = gScore[neighbor]
-		//						+ calculateHeuristicCost(neighbor, endPosition);
-		//}
+			if (isMoveValid(neighbor)) {
+
+				if (closedSet.find(toHash(neighbor)) != closedSet.end()) {
+					continue;
+				}
+
+				int currentGScore = gScore[toHash(currentPos)]
+									+ calculateTravelCost((Moves)i, neighbor);
+
+				// Add to open set if it isn't there already.
+				if (isInOpenSet.find(toHash(neighbor)) == isInOpenSet.end()) {
+					openSet.push(neighbor);
+					isInOpenSet.insert(toHash(currentPos));
+				}
+				// Don't bother looking if the cost is more than what we already have.
+				else if (currentGScore >= gScore[toHash(neighbor)]) {
+					continue;
+				}
+
+				// Best path so far.
+				fromNodes[toHash(neighbor)] = currentPos;
+				gScore[toHash(neighbor)] = currentGScore;
+				fScore[toHash(neighbor)] = gScore[toHash(neighbor)]
+									+ calculateHeuristicCost(neighbor, knightBoard.endPosition);
+			}
+		}
 	}
 	return -1;
 }
 
+int KnightEngine::calculateTravelCost(Moves i, const Position&neighbor) {
+
+	Position knightPosition = knightBoard.getKnightPosition();
+
+	int totalCost = calculateTerrainCost(knightPosition.x, knightPosition.y);
+
+	if (i == LEFTUP || i == LEFTDOWN) {
+
+		for (int i = 0; i < 2; ++i) {
+			totalCost += calculateTerrainCost(neighbor.x + i, neighbor.y);
+		}
+	}
+	else if (i == RIGHTUP || i == RIGHTDOWN) {
+
+		for (int i = 0; i < 2; ++i) {
+			totalCost += calculateTerrainCost(neighbor.x - i, neighbor.y);
+		}
+	}
+	else if (i == UPLEFT || i == UPRIGHT) {
+
+		for (int i = 0; i < 2; ++i) {
+			totalCost += calculateTerrainCost(neighbor.x, neighbor.y + i);
+		}
+	}
+	else if (i == DOWNLEFT || i == DOWNRIGHT) {
+
+		for (int i = 0; i < 2; ++i) {
+			totalCost += calculateTerrainCost(neighbor.x, neighbor.y - i);
+		}
+	}
+	else {
+		cerr << "Error: Cannot find correct knight move!\n";
+		return -1;
+	}
+
+	return totalCost;
+}
+
 int KnightEngine::calculateHeuristicCost(const Position &from, const Position &to) {
 
+	// TODO: Calculate heuristic cost.
+	return 0;
+}
+
+void KnightEngine::generateNeighbor(Position &neighbor, const Position &pos, Moves i) {
+
+	if (i == LEFTUP) {
+		neighbor.x = pos.x - 2;
+		neighbor.y = pos.y - 1;
+	}
+	else if (i == LEFTDOWN) {
+		neighbor.x = pos.x - 2;
+		neighbor.y = pos.y + 1;
+	}
+	else if (i == RIGHTUP) {
+		neighbor.x = pos.x + 2;
+		neighbor.y = pos.y - 1;
+	}
+	else if (i == RIGHTDOWN) {
+		neighbor.x = pos.x + 2;
+		neighbor.y = pos.y + 1;
+	}
+	else if (i == UPLEFT) {
+		neighbor.x = pos.x - 1;
+		neighbor.y = pos.y - 2;
+	}
+	else if (i == UPRIGHT) {
+		neighbor.x = pos.x + 1;
+		neighbor.y = pos.y - 2;
+	}
+	else if (i == DOWNLEFT) {
+		neighbor.x = pos.x - 1;
+		neighbor.y = pos.y + 2;
+	}
+	else if (i == DOWNRIGHT) {
+		neighbor.x = pos.x + 1;
+		neighbor.y = pos.y + 2;
+	}
+	else {
+		cerr << "Error: cannot generate neighbor in generateNeighbor()\n";
+	}
 }
 
 void KnightEngine::buildPath(unordered_map<int, Position> &fromNodes,
 								Position &currentNode) {
 
-	path.resize(fromNodes.size());
+	assert(path.empty());
+	path.resize(fromNodes.size() - 1);
 
-	path[fromNodes.size() - 1] = currentNode;
+	path[path.size() - 1] = currentNode;
 
-	int i = fromNodes.size() - 2;
+	int i = path.size() - 2;
 
 	while (fromNodes.find(toHash(currentNode)) != fromNodes.end()) {
 
@@ -232,7 +356,7 @@ void KnightEngine::buildPath(unordered_map<int, Position> &fromNodes,
 void KnightEngine::printPath() {
 
 	for (auto &pos: path) {
-		cout << "(" << pos.x << "," << pos.y << "),";
+		cout << "(" << pos.x << "," << pos.y << ") ";
 	}
 	cout << "\n";
 }
@@ -241,7 +365,7 @@ void KnightEngine::task1() {
 
 	// Populate moves.
 	path.push_back(Position(2, 2));
-	path.push_back(Position(2, 1));
+	//path.push_back(Position(2, 1));
 
 	bool movesAreInvalid = false;
 

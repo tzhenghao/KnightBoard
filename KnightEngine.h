@@ -11,6 +11,8 @@
 
 using namespace std;
 
+enum Moves { LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT };
+
 class KnightEngine {
 
 	private:
@@ -28,9 +30,13 @@ class KnightEngine {
 		// EFFECTS: Calculates the heuristic cost via two points.
 		int calculateHeuristicCost(const Position &from, const Position &to);
 
-		int toHash(const Position &pos) const {
-			return pos.y * BOARD_SIZE + pos.x;
-		};
+		// REQUIRES:
+		// EFFECTS: Generates neighbors for the current position.
+		void generateNeighbor(Position &neighbor, const Position &pos, Moves i);
+
+		// REQUIRES: The move to be valid.
+		// EFFECTS: Returns the total travel cost to move to neighbor.
+		int calculateTravelCost(Moves i, const Position&neighbor);
 
 	public:
 
@@ -46,7 +52,7 @@ class KnightEngine {
 
 		// REQUIRES: The position that we are moving into.
 		// EFFECTS: Calculates the terrain cost for entering the specified position.
-		int calculateTerrainCost(const Position &pos);
+		int calculateTerrainCost(int x, int y);
 
 		// EFFECTS: Finds the best path from the given start and end points.
 		//			Returns a non-negative number for the cost of the path,

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cassert>
 
 using namespace std;
 
@@ -74,7 +75,7 @@ void KnightBoard::moveKnightToPosition(const Position &dest) {
 }
 
 char KnightBoard::getTerrainType(const Position &pos) const {
-
+	
 	return board[pos.y][pos.x];
 }
 
