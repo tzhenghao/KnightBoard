@@ -8,24 +8,46 @@
 using namespace std;
 
 // Position on the knight board.
-struct Position {
+class Position {
 
-	int x;
-	int y;
+	public:
+		int x;
+		int y;
+
+		Position() {
+			x = 0;
+			y = 0;
+		};
+
+		Position(int argX, int argY) {
+			x = argX;
+			y = argY;
+		};
+
+		bool operator==(const Position &other) const
+		{
+			return x == other.x && y == other.y;
+		}
+
+		Position& operator=(const Position &other)
+		{
+			this->x = other.x;
+			this->y = other.y;
+			return *this;
+		}
 };
 
 class KnightBoard {
 
 	private:
 
-		Position knightPosition;
-		Position startPosition;
-		Position endPosition;
-
-		//vector< vector <char> > board;
 		char board[BOARD_SIZE][BOARD_SIZE];
 
 	public:
+
+		Position knightPosition;
+		Position startPosition;
+		Position endPosition;
 
 		// Constructor with no arguments.
 		KnightBoard() {

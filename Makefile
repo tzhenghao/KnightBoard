@@ -17,7 +17,7 @@ debug: all
 CC = g++
 PROGRAM = knightboard
 
-all: KnightBoard.h KnightBoard.cpp main.cpp
+all: KnightBoard.h KnightBoard.cpp KnightEngine.h KnightEngine.cpp main.cpp
 	$(CC) $(FLAGS) $? -o $(PROGRAM)
 
 # make clean - remove .o files and the executable file.

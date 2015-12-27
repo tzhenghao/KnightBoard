@@ -7,14 +7,9 @@ using namespace std;
 
 KnightBoard::KnightBoard(const char *inputFile) {
 
-	// Random start and stop locations.
-	Position start;
-	Position stop;
-	start.x = 0;
-	start.y = 1;
-
-	stop.x = 0;
-	stop.y = 15;
+	// TODO: Random start and stop locations.
+	Position start(0, 1);
+	Position stop(0, 15);
 
 	initializeKnightBoard(start, stop, inputFile);
 }
@@ -33,6 +28,9 @@ void KnightBoard::initializeKnightBoard(const Position &start, const Position &s
 
 	endPosition.x = stop.x;
 	endPosition.y = stop.y;
+
+	knightPosition.x = startPosition.x;
+	knightPosition.y = startPosition.y;
 
 	// Read map from file.
 	ifstream inputFile(inputFileName);
@@ -56,7 +54,7 @@ void KnightBoard::initializeKnightBoard(const Position &start, const Position &s
 		cerr << "Unable to open file";
 	}
 
-	// update start and end positions.
+	// Initialize start and end positions.
 	board[startPosition.y][startPosition.x] = 'S';
 	board[endPosition.y][endPosition.x] = 'E';
 }
