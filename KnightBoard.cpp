@@ -8,7 +8,6 @@ using namespace std;
 
 KnightBoard::KnightBoard(const char *inputFile) {
 
-	// TODO: Random start and stop locations.
 	Position start(0, 1);
 	Position stop(0, 15);
 
@@ -23,6 +22,8 @@ KnightBoard::KnightBoard(const Position &start, const Position &stop,
 
 void KnightBoard::initializeKnightBoard(const Position &start, const Position &stop,
 										const char *inputFileName) {
+
+	hasTeleport = 0;
 
 	startPosition.x = start.x;
 	startPosition.y = start.y;
@@ -40,11 +41,17 @@ void KnightBoard::initializeKnightBoard(const Position &start, const Position &s
 
 		string line;
 		int i = 0;
-
+		int countTeleport = 0;
 		while (getline(inputFile,line)) {
 
 			for (int j = 0; j < BOARD_SIZE; ++j) {
 				board[i][j] = line[j];
+
+				// Save teleportation positions.
+				if (line[j] == 'T') {
+					hasTeleport = 1;
+					teleport[countTeleport++] = Position(i, j);
+				}
 			}
 			++i;
 		}
@@ -54,10 +61,6 @@ void KnightBoard::initializeKnightBoard(const Position &start, const Position &s
 	else {
 		cerr << "Unable to open file";
 	}
-
-	// Initialize start and end positions.
-	board[startPosition.y][startPosition.x] = 'S';
-	board[endPosition.y][endPosition.x] = 'E';
 }
 
 Position KnightBoard::getKnightPosition() const {
@@ -67,6 +70,10 @@ Position KnightBoard::getKnightPosition() const {
 
 void KnightBoard::moveKnightToPosition(const Position &dest) {
 
+	// Initialize start and end positions.
+	board[startPosition.y][startPosition.x] = 'S';
+	board[endPosition.y][endPosition.x] = 'E';
+
 	knightPosition.x = dest.x;
 	knightPosition.y = dest.y;
 
@@ -75,7 +82,7 @@ void KnightBoard::moveKnightToPosition(const Position &dest) {
 }
 
 char KnightBoard::getTerrainType(const Position &pos) const {
-	
+
 	return board[pos.y][pos.x];
 }
 

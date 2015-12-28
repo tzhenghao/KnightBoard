@@ -20,12 +20,19 @@ int main(int argc, char *argv[]) {
 	}
 
 	Position start(0, 1);
-	Position stop(1, 3);
+	//Position stop(1, 3);
+	//Position stop(4, 1);
+	Position stop(2, 20);
 
 	KnightEngine knightEngine(start, stop, argv[1]); // File argument.
 
 	//knightEngine.task1();
-	int cost = knightEngine.findBestPath();
+	int cost = knightEngine.findBestPath(start, stop);
+
+	if (cost == -1) {
+		cerr << "Path cannot be found!\n" << endl;
+		return 1;
+	}
 
 	cout << "Total cost: " << cost << "\n";
 

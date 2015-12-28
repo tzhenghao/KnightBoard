@@ -4,6 +4,7 @@
 #define BOARD_SIZE 32 // Board size is 32x32
 
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
@@ -48,6 +49,10 @@ class KnightBoard {
 		Position knightPosition;
 		Position startPosition;
 		Position endPosition;
+
+		Position teleport[2]; // Assuming that there are only two teleportation portals.
+		
+		bool hasTeleport; // keep track of teleportation - needed for heuristic.
 
 		// Constructor with no arguments.
 		KnightBoard() {
