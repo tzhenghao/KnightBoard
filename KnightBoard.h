@@ -38,7 +38,7 @@ class Position {
 		}
 };
 
-class KnightBoard {
+class KnightBoard : public Board {
 
 	private:
 
@@ -51,7 +51,7 @@ class KnightBoard {
 		Position endPosition;
 
 		Position teleport[2]; // Assuming that there are only two teleportation portals.
-		
+
 		bool hasTeleport; // keep track of teleportation - needed for heuristic.
 
 		// Constructor with no arguments.
@@ -66,7 +66,7 @@ class KnightBoard {
 					const char *inputFile);
 
 		// EFFECTS: Initializes the knight board.
-		void initializeKnightBoard(const Position &start, const Position &stop,
+		void initializeBoard(const Position &start, const Position &stop,
 									const char *inputFileName);
 
 		// EFFECTS: Returns the knight position.
@@ -80,7 +80,7 @@ class KnightBoard {
 		char getTerrainType(const Position &dest) const;
 
 		// EFFECTS: Prints the current board state.
-		void printKnightBoard() const;
+		void printBoard() const;
 };
 
 #endif
